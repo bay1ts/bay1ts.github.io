@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-Hans">
 <head>
   <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
@@ -17,7 +17,7 @@
 
 <script id="hexo-configurations">
     var NexT = window.NexT || {};
-    var CONFIG = {"hostname":"bay1ts.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+    var CONFIG = {"hostname":"bay1ts.github.io","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
   </script>
 
   <meta name="description" content="介绍这篇文章中,我会给大家展示Spring Boot项目结合Traefik&amp;Consul实现后端服务动态服务注册,路由及负载均衡的基础用法.   组件Traefik是一个开源的反向代理和负载均衡器.类似Nginx,不支持为静态文件提供Web服务,但在协议层,较Nginx有更大的优势:可以在4层&#x2F;7层上提供代理转发能力;可以基于不同Providers提供动态服务发现能力.广泛应用在K8S I">
@@ -26,11 +26,13 @@
 <meta property="og:url" content="https://bay1ts.github.io/2020/06/21/2020%E5%B9%B4%E4%BD%A0%E5%BA%94%E8%AF%A5%E4%BA%86%E8%A7%A3%E7%9A%84Spring%20Boot%E9%A1%B9%E7%9B%AE%E6%9E%B6%E6%9E%84/index.html">
 <meta property="og:site_name" content="Bay1ts">
 <meta property="og:description" content="介绍这篇文章中,我会给大家展示Spring Boot项目结合Traefik&amp;Consul实现后端服务动态服务注册,路由及负载均衡的基础用法.   组件Traefik是一个开源的反向代理和负载均衡器.类似Nginx,不支持为静态文件提供Web服务,但在协议层,较Nginx有更大的优势:可以在4层&#x2F;7层上提供代理转发能力;可以基于不同Providers提供动态服务发现能力.广泛应用在K8S I">
-<meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2020-06-20T16:05:33.000Z">
-<meta property="article:modified_time" content="2020-06-21T16:56:31.305Z">
+<meta property="article:modified_time" content="2020-06-21T17:47:53.343Z">
 <meta property="article:author" content="Bay1ts">
-<meta property="article:tag" content="Traefik,Consul,Spring Boot">
+<meta property="article:tag" content="Traefik">
+<meta property="article:tag" content="Consul">
+<meta property="article:tag" content="Spring Boot">
+<meta property="article:tag" content="微服务">
 <meta name="twitter:card" content="summary">
 
 <link rel="canonical" href="https://bay1ts.github.io/2020/06/21/2020%E5%B9%B4%E4%BD%A0%E5%BA%94%E8%AF%A5%E4%BA%86%E8%A7%A3%E7%9A%84Spring%20Boot%E9%A1%B9%E7%9B%AE%E6%9E%B6%E6%9E%84/">
@@ -42,7 +44,7 @@
     sidebar: "",
     isHome : false,
     isPost : true,
-    lang   : 'en'
+    lang   : 'zh-Hans'
   };
 </script>
 
@@ -86,7 +88,7 @@
     <header class="header" itemscope itemtype="http://schema.org/WPHeader">
       <div class="header-inner"><div class="site-brand-container">
   <div class="site-nav-toggle">
-    <div class="toggle" aria-label="Toggle navigation bar">
+    <div class="toggle" aria-label="Navigationsleiste an/ausschalten">
       <span class="toggle-line toggle-line-first"></span>
       <span class="toggle-line toggle-line-middle"></span>
       <span class="toggle-line toggle-line-last"></span>
@@ -116,17 +118,27 @@
   <ul id="menu" class="menu">
         <li class="menu-item menu-item-home">
 
-    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>Home</a>
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>Startseite</a>
 
   </li>
         <li class="menu-item menu-item-about">
 
-    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>About</a>
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>Über</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>Schlagwörter</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>Kategorien</a>
 
   </li>
         <li class="menu-item menu-item-archives">
 
-    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>Archives</a>
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>Archiv</a>
 
   </li>
   </ul>
@@ -156,7 +168,7 @@
     
   
   
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-Hans">
     <link itemprop="mainEntityOfPage" href="https://bay1ts.github.io/2020/06/21/2020%E5%B9%B4%E4%BD%A0%E5%BA%94%E8%AF%A5%E4%BA%86%E8%A7%A3%E7%9A%84Spring%20Boot%E9%A1%B9%E7%9B%AE%E6%9E%B6%E6%9E%84/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -178,17 +190,26 @@
               <span class="post-meta-item-icon">
                 <i class="fa fa-calendar-o"></i>
               </span>
-              <span class="post-meta-item-text">Posted on</span>
+              <span class="post-meta-item-text">Veröffentlicht am</span>
 
-              <time title="Created: 2020-06-21 00:05:33" itemprop="dateCreated datePublished" datetime="2020-06-21T00:05:33+08:00">2020-06-21</time>
+              <time title="Erstellt: 2020-06-21 00:05:33" itemprop="dateCreated datePublished" datetime="2020-06-21T00:05:33+08:00">2020-06-21</time>
             </span>
               <span class="post-meta-item">
                 <span class="post-meta-item-icon">
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
-                <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2020-06-22 00:56:31" itemprop="dateModified" datetime="2020-06-22T00:56:31+08:00">2020-06-22</time>
+                <span class="post-meta-item-text">Bearbeitet am</span>
+                <time title="Geändert am: 2020-06-22 01:47:53" itemprop="dateModified" datetime="2020-06-22T01:47:53+08:00">2020-06-22</time>
               </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">in</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%9E%B6%E6%9E%84/" itemprop="url" rel="index"><span itemprop="name">架构</span></a>
+                </span>
+            </span>
 
           
 
@@ -203,6 +224,7 @@
       
         <h2 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h2><p>这篇文章中,我会给大家展示Spring Boot项目结合Traefik&amp;Consul实现后端服务动态服务注册,路由及负载均衡的基础用法.  </p>
 <h2 id="组件"><a href="#组件" class="headerlink" title="组件"></a>组件</h2><p>Traefik是一个开源的反向代理和负载均衡器.类似Nginx,不支持为静态文件提供Web服务,但在协议层,较Nginx有更大的优势:可以在4层/7层上提供代理转发能力;可以基于不同Providers提供动态服务发现能力.广泛应用在K8S Ingress Controller中,在云原生时代表现非常优秀.<br>Consul为微服务架构提供服务注册,健康检查,配置中心等服务,并有KV存储功能.在本文中主要用作服务注册发现组件.用于为Traefik动态提供后端Service信息,供其将流量路由到Consul中注册的服务.  </p>
+<a id="more"></a>
 <h2 id="项目实现"><a href="#项目实现" class="headerlink" title="项目实现"></a>项目实现</h2><p>添加依赖:</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">&lt;dependencyManagement&gt;</span><br><span class="line">    &lt;dependencies&gt;</span><br><span class="line">        &lt;dependency&gt;</span><br><span class="line">            &lt;groupId&gt;org.springframework.cloud&lt;&#x2F;groupId&gt;</span><br><span class="line">            &lt;artifactId&gt;spring-cloud-dependencies&lt;&#x2F;artifactId&gt;</span><br><span class="line">            &lt;version&gt;$&#123;spring-cloud.version&#125;&lt;&#x2F;version&gt;</span><br><span class="line">            &lt;type&gt;pom&lt;&#x2F;type&gt;</span><br><span class="line">            &lt;scope&gt;import&lt;&#x2F;scope&gt;</span><br><span class="line">        &lt;&#x2F;dependency&gt;</span><br><span class="line">    &lt;&#x2F;dependencies&gt;</span><br><span class="line">&lt;&#x2F;dependencyManagement&gt;</span><br><span class="line"></span><br><span class="line">&lt;dependency&gt;</span><br><span class="line">    &lt;groupId&gt;org.springframework.cloud&lt;&#x2F;groupId&gt;</span><br><span class="line">    &lt;artifactId&gt;spring-cloud-starter-consul-discovery&lt;&#x2F;artifactId&gt;</span><br><span class="line">&lt;&#x2F;dependency&gt;</span><br></pre></td></tr></table></figure>
 <p>并在主类上添加:</p>
@@ -231,7 +253,10 @@
 
       <footer class="post-footer">
           <div class="post-tags">
-              <a href="/tags/Traefik-Consul-Spring-Boot/" rel="tag"># Traefik,Consul,Spring Boot</a>
+              <a href="/tags/Traefik/" rel="tag"># Traefik</a>
+              <a href="/tags/Consul/" rel="tag"># Consul</a>
+              <a href="/tags/Spring-Boot/" rel="tag"># Spring Boot</a>
+              <a href="/tags/%E5%BE%AE%E6%9C%8D%E5%8A%A1/" rel="tag"># 微服务</a>
           </div>
 
         
@@ -286,10 +311,10 @@
 
       <ul class="sidebar-nav motion-element">
         <li class="sidebar-nav-toc">
-          Table of Contents
+          Inhaltsverzeichnis
         </li>
         <li class="sidebar-nav-overview">
-          Overview
+          Übersicht
         </li>
       </ul>
 
@@ -310,12 +335,20 @@
           <a href="/archives/">
         
           <span class="site-state-item-count">1</span>
-          <span class="site-state-item-name">posts</span>
+          <span class="site-state-item-name">Artikel</span>
         </a>
       </div>
-      <div class="site-state-item site-state-tags">
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
         <span class="site-state-item-count">1</span>
-        <span class="site-state-item-name">tags</span>
+        <span class="site-state-item-name">Kategorien</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">schlagwörter</span></a>
       </div>
   </nav>
 </div>
@@ -347,7 +380,7 @@
   </span>
   <span class="author" itemprop="copyrightHolder">Bay1ts</span>
 </div>
-  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  <div class="powered-by">Erstellt mit  <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a>
   </div>
 
         
