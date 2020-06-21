@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+
+  
+  <title>traefik basic usage | Bay1ts</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="2020年你应该了解的Spring Boot项目架构这篇文章中,我会给大家展示Spring Boot项目结合Traefik实现动态服务注册的基础用法.   Traefik简介Traefik是一个开源的反向代理和负载均衡器.类似Nginx,不支持为静态文件提供Web服务,但在协议层,较Nginx有更大的优势:可以在4层&#x2F;7层上提供代理转发能力;可以基于不同Providers提供动态服务发现能力.广泛">
+<meta property="og:type" content="article">
+<meta property="og:title" content="traefik basic usage">
+<meta property="og:url" content="https://bay1ts.github.io/2020/06/21/traefik-basic-usage/index.html">
+<meta property="og:site_name" content="Bay1ts">
+<meta property="og:description" content="2020年你应该了解的Spring Boot项目架构这篇文章中,我会给大家展示Spring Boot项目结合Traefik实现动态服务注册的基础用法.   Traefik简介Traefik是一个开源的反向代理和负载均衡器.类似Nginx,不支持为静态文件提供Web服务,但在协议层,较Nginx有更大的优势:可以在4层&#x2F;7层上提供代理转发能力;可以基于不同Providers提供动态服务发现能力.广泛">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://static.runoob.com/images/runoob-logo.png">
+<meta property="article:published_time" content="2020-06-20T16:05:33.000Z">
+<meta property="article:modified_time" content="2020-06-21T04:31:17.317Z">
+<meta property="article:author" content="Bay1ts">
+<meta property="article:tag" content="traefik">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://static.runoob.com/images/runoob-logo.png">
+  
+    <link rel="alternate" href="/atom.xml" title="Bay1ts" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 4.2.1"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Bay1ts</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">记录成长</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="https://bay1ts.github.io"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-traefik-basic-usage" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2020/06/21/traefik-basic-usage/" class="article-date">
+  <time datetime="2020-06-20T16:05:33.000Z" itemprop="datePublished">2020-06-21</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      traefik basic usage
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="2020年你应该了解的Spring-Boot项目架构"><a href="#2020年你应该了解的Spring-Boot项目架构" class="headerlink" title="2020年你应该了解的Spring Boot项目架构"></a>2020年你应该了解的Spring Boot项目架构</h1><p>这篇文章中,我会给大家展示Spring Boot项目结合Traefik实现动态服务注册的基础用法.  </p>
+<h2 id="Traefik简介"><a href="#Traefik简介" class="headerlink" title="Traefik简介"></a>Traefik简介</h2><p>Traefik是一个开源的反向代理和负载均衡器.类似Nginx,不支持为静态文件提供Web服务,但在协议层,较Nginx有更大的优势:可以在4层/7层上提供代理转发能力;可以基于不同Providers提供动态服务发现能力.广泛应用在K8S Ingress Controller中,在云原生时代表现非常优秀.</p>
+<h2 id="Consul简介"><a href="#Consul简介" class="headerlink" title="Consul简介"></a>Consul简介</h2><p>该项目在本文中主要用作服务注册发现组件.用于为Traefik动态提供后端Service信息,供其将流量路由到Consul中注册的服务.  </p>
+<h2 id="项目架构"><a href="#项目架构" class="headerlink" title="项目架构"></a>项目架构</h2><p><img src="http://static.runoob.com/images/runoob-logo.png" alt="项目架构"></p>
+<h2 id="项目实现"><a href="#项目实现" class="headerlink" title="项目实现"></a>项目实现</h2><p>添加依赖:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">&lt;dependencyManagement&gt;</span><br><span class="line">    &lt;dependencies&gt;</span><br><span class="line">        &lt;dependency&gt;</span><br><span class="line">            &lt;groupId&gt;org.springframework.cloud&lt;&#x2F;groupId&gt;</span><br><span class="line">            &lt;artifactId&gt;spring-cloud-dependencies&lt;&#x2F;artifactId&gt;</span><br><span class="line">            &lt;version&gt;$&#123;spring-cloud.version&#125;&lt;&#x2F;version&gt;</span><br><span class="line">            &lt;type&gt;pom&lt;&#x2F;type&gt;</span><br><span class="line">            &lt;scope&gt;import&lt;&#x2F;scope&gt;</span><br><span class="line">        &lt;&#x2F;dependency&gt;</span><br><span class="line">    &lt;&#x2F;dependencies&gt;</span><br><span class="line">&lt;&#x2F;dependencyManagement&gt;</span><br><span class="line"></span><br><span class="line">&lt;dependency&gt;</span><br><span class="line">    &lt;groupId&gt;org.springframework.cloud&lt;&#x2F;groupId&gt;</span><br><span class="line">    &lt;artifactId&gt;spring-cloud-starter-consul-discovery&lt;&#x2F;artifactId&gt;</span><br><span class="line">&lt;&#x2F;dependency&gt;</span><br></pre></td></tr></table></figure>
+<p>并在主类上添加:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">@EnableDiscoveryClient</span><br></pre></td></tr></table></figure>
+<p>添加配置文件(本文采用properties格式):</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">spring.cloud.consul.host&#x3D;localhost</span><br><span class="line">spring.cloud.consul.port&#x3D;8500</span><br><span class="line">spring.cloud.consul.discovery.register&#x3D;true</span><br><span class="line">spring.cloud.consul.discovery.deregister&#x3D;true</span><br><span class="line">spring.cloud.consul.discovery.health-check-path&#x3D;&#x2F;actuator&#x2F;health</span><br><span class="line">spring.cloud.consul.discovery.include-hostname-in-instance-id&#x3D;true</span><br></pre></td></tr></table></figure>
+<p>接下来我们以开发模式启动Consul(单点)  </p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">.\consul.exe agent -dev</span><br></pre></td></tr></table></figure>
+<p>测试环境可以使用-dev参数快速启动Consul服务.在生产环境请参考<a href="https://learn.hashicorp.com/consul/getting-started/install" target="_blank" rel="noopener">Consul官网</a>,自行搭建集群.<br>启动成功后,可以在<a href="http://localhost:8500/ui/dc1/nodes" target="_blank" rel="noopener">http://localhost:8500/ui/dc1/nodes</a> 中看到一个健康的Consul节点.  </p>
+<p>下面启动Spring Boot服务.因为小型企业运维能力可能不足以支撑Docker/K8S技术栈,所以本文采用基础的Jar包启动方式,启动多个Spring Boot服务.(在K8S环境中可以直接部署Traefik,基于K8S实现服务注册发现.本文不做过多展开)  </p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">java -jar .\app.jar --server.port&#x3D;8083</span><br><span class="line">java -jar .\app.jar --server.port&#x3D;8084</span><br></pre></td></tr></table></figure>
+<p>项目启动后,可以在日志中观察到: <em>Registering service with consul</em></p>
+<p>此时,<a href="http://localhost:8500/ui/dc1/services" target="_blank" rel="noopener">http://localhost:8500/ui/dc1/services</a> 中可以看到有两个Service.一个为Consul自注册服务,另一个是Spring Boot项目注册的服务.点击后可以看到项目节点信息及健康检查信息.健康检查包括主机健康情况及项目自身健康检查情况.  </p>
+<h3 id="到现在为止我们大体上完成了一半的工作-实现了Spring-Boot项目基于Consul的服务注册及健康检查-下面我们准备启动Traefik-发现Spring-Boot服务并提供流量入口及路由"><a href="#到现在为止我们大体上完成了一半的工作-实现了Spring-Boot项目基于Consul的服务注册及健康检查-下面我们准备启动Traefik-发现Spring-Boot服务并提供流量入口及路由" class="headerlink" title="到现在为止我们大体上完成了一半的工作:实现了Spring Boot项目基于Consul的服务注册及健康检查.下面我们准备启动Traefik,发现Spring Boot服务并提供流量入口及路由."></a>到现在为止我们大体上完成了一半的工作:实现了Spring Boot项目基于Consul的服务注册及健康检查.下面我们准备启动Traefik,发现Spring Boot服务并提供流量入口及路由.</h3><p>启动traefik并指定参数  </p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">.\traefik.exe --entryPoints.web.address&#x3D;:22222 --api.dashboard&#x3D;true --api.insecure&#x3D;true --api&#x3D;true --ping&#x3D;true --providers.consulcatalog.endpoint.address&#x3D;http:&#x2F;&#x2F;127.0.0.1:8500</span><br></pre></td></tr></table></figure>
+
+<p>其中 <em>–entryPoints.web.address=:22222</em><br>表示Treafik在22222端口监听,并建立名为web的entryPoint;<br><em>–providers.consulcatalog.endpoint.address=<a href="http://127.0.0.1:8500" target="_blank" rel="noopener">http://127.0.0.1:8500</a></em></p>
+<p>表示采用ConsulCatalog作为Provider.并指明了Consul服务地址.Traefik会自动从中寻找注册的服务.</p>
+<p>此时可以打开<a href="http://localhost:8080/dashboard/#/" target="_blank" rel="noopener">http://localhost:8080/dashboard/#/</a> 可以观察到有两个EntryPoint,分别为8080端口的Traefik和22222端口的web.<br>可以点击HTTP/Router/Explore查看不同路由定义.主要规则包括 <em>Host</em> , <em>PathPrefix</em> 等.具体规则可以参考<a href="https://docs.traefik.io/routing/routers/#rule" target="_blank" rel="noopener">Traefik官网路由篇</a>;<br>可以点击HTTP/Services/Explore查看不同Service定义,其中包括两大部分:@internal表示为Treafik内部服务,@consulcatalog表示通过Consul发现到的服务.<br>可以在hosts文件中按Traefik路由规则添加记录,多次访问hostname(对应rule中定义值):22222即可在Spring Boot两个节点中分别观察到日志.表示EntryPoint-&gt;服务发现-&gt;路由&amp;负载均衡-&gt;后端服务均正常工作.  </p>
+<h4 id="至此-我们实现了Spring-Boot项目多点部署-自动的服务注册发现及路由功能-相对于较传统的Nginx方式-Traefik-amp-Consul在非K8S环境中的应用可以较优雅的实现全功能反向代理服务注册发现-但是引入了Consul-增加了复杂性-但是Consul也可以作为Spring项目的配置中心-下一篇文章会将配置中心集成到项目中-更详细的Traefik及Consul用法请参考官网-本文到此结束"><a href="#至此-我们实现了Spring-Boot项目多点部署-自动的服务注册发现及路由功能-相对于较传统的Nginx方式-Traefik-amp-Consul在非K8S环境中的应用可以较优雅的实现全功能反向代理服务注册发现-但是引入了Consul-增加了复杂性-但是Consul也可以作为Spring项目的配置中心-下一篇文章会将配置中心集成到项目中-更详细的Traefik及Consul用法请参考官网-本文到此结束" class="headerlink" title="至此,我们实现了Spring Boot项目多点部署,自动的服务注册发现及路由功能.相对于较传统的Nginx方式,Traefik&amp;Consul在非K8S环境中的应用可以较优雅的实现全功能反向代理服务注册发现.但是引入了Consul,增加了复杂性.但是Consul也可以作为Spring项目的配置中心.下一篇文章会将配置中心集成到项目中,更详细的Traefik及Consul用法请参考官网.本文到此结束."></a>至此,我们实现了Spring Boot项目多点部署,自动的服务注册发现及路由功能.相对于较传统的Nginx方式,Traefik&amp;Consul在非K8S环境中的应用可以较优雅的实现全功能反向代理服务注册发现.但是引入了Consul,增加了复杂性.但是Consul也可以作为Spring项目的配置中心.下一篇文章会将配置中心集成到项目中,更详细的Traefik及Consul用法请参考官网.本文到此结束.</h4>
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://bay1ts.github.io/2020/06/21/traefik-basic-usage/" data-id="ckbouonb10000bojp5lf672ry" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/traefik/" rel="tag">traefik</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+  
+</article>
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/traefik/" rel="tag">traefik</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/traefik/" style="font-size: 10px;">traefik</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/06/">June 2020</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2020/06/21/traefik-basic-usage/">traefik basic usage</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2020 Bay1ts<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+  
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+  </div>
+</body>
+</html>
